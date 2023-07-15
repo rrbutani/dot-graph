@@ -18,3 +18,4 @@ serial_test = "1.0.0"
 
 [build-dependencies]
 bindgen = "0.59.1"
+pkg-config = "0.3.27"

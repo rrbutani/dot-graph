@@ -16,8 +16,11 @@ impl bindgen::callbacks::ParseCallbacks for IgnoreMacros {
 
 // https://fitzgeraldnick.com/2016/12/14/using-libbindgen-in-build-rs.html
 fn main() {
-    println!("cargo:rustc-link-lib=gvc");
-    println!("cargo:rustc-link-lib=cgraph");
+    let gvc = pkg_config::probe_library("libgvc").unwrap();
+    let cgraph = pkg_config::probe_library("libcgraph").unwrap();
+    let include_dirs = |lib: pkg_config::Library| {
+        lib.include_paths.into_iter().map(|p| format!("-I{}", p.to_string_lossy()))
+    };
 
     // https://github.com/rust-lang/rust-bindgen/issues/687
     let ignored_macros = IgnoreMacros(
@@ -33,6 +36,8 @@ fn main() {
     );
 
     let bindings = bindgen::Builder::default()
+        .clang_args(include_dirs(gvc))
+        .clang_args(include_dirs(cgraph))
         .header("wrapper.h")
         .parse_callbacks(Box::new(ignored_macros))
         .rustfmt_bindings(true)
