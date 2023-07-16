@@ -1,6 +1,6 @@
 [package]
 name = "graphviz-rs"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["FuriosaAI, Inc."]
 description = "A parser for directed graph in dot format with FFI to Graphviz cgraph library"
 readme = "README.md"
@@ -19,3 +19,4 @@ serial_test = "1.0.0"
 [build-dependencies]
 bindgen = "0.59.1"
 pkg-config = "0.3.27"
+# TODO: maybe don't run bindgen at build-time... (vendor the output!)

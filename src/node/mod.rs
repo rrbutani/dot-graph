@@ -34,6 +34,12 @@ impl Borrow<NodeId> for Node {
     }
 }
 
+impl Borrow<str> for Node {
+    fn borrow(&self) -> &str {
+        &self.id
+    }
+}
+
 impl Node {
     pub(crate) fn new(id: NodeId, attrs: HashSet<Attr>) -> Node {
         Node { id, attrs }

@@ -5,13 +5,13 @@ use std::io::{Result, Write};
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct EdgeId {
     /// Start point's node id
-    pub(crate) from: NodeId,
+    pub from: NodeId,
     /// Start point's port
-    pub(crate) tailport: Option<String>,
+    pub tailport: Option<String>,
     /// End point's node id
-    pub(crate) to: NodeId,
+    pub to: NodeId,
     /// End point's port
-    pub(crate) headport: Option<String>,
+    pub headport: Option<String>,
 }
 
 impl EdgeId {

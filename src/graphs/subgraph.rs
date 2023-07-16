@@ -30,7 +30,7 @@ pub struct SubGraph {
     pub(crate) id: GraphId,
     /// Ids of its children subgraphs, referenced in `Graph`
     pub(crate) subgraph_ids: HashSet<GraphId>,
-    /// Ids of its own nodes, referened in `Graph`
+    /// Ids of its own nodes, referenced in `Graph`
     pub(crate) node_ids: HashSet<NodeId>,
     /// Ids of its own edges, referenced in `Graph`
     pub(crate) edge_ids: HashSet<EdgeId>,
@@ -52,6 +52,12 @@ impl Hash for SubGraph {
 
 impl Borrow<GraphId> for SubGraph {
     fn borrow(&self) -> &GraphId {
+        &self.id
+    }
+}
+
+impl Borrow<str> for SubGraph {
+    fn borrow(&self) -> &str {
         &self.id
     }
 }

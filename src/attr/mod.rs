@@ -38,7 +38,8 @@ impl Borrow<str> for Attr {
 }
 
 impl Attr {
-    pub(crate) fn new(key: String, value: String, is_html: bool) -> Attr {
+    // TODO: make safe for users to use..
+    pub fn new(key: String, value: String, is_html: bool) -> Attr {
         Attr { key, value, is_html }
     }
 

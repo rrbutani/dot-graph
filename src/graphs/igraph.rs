@@ -48,6 +48,12 @@ impl Borrow<GraphId> for IGraph {
     }
 }
 
+impl Borrow<str> for IGraph {
+    fn borrow(&self) -> &str {
+        &self.id
+    }
+}
+
 impl IGraph {
     pub(crate) fn new(
         id: GraphId,
