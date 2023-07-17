@@ -36,7 +36,8 @@ impl Borrow<EdgeId> for Edge {
 }
 
 impl Edge {
-    pub(crate) fn new(id: EdgeId, attrs: HashSet<Attr>) -> Edge {
+    // TODO: make safe for public use?
+    pub fn new(id: EdgeId, attrs: HashSet<Attr>) -> Edge {
         Edge { id, attrs }
     }
 
@@ -46,6 +47,10 @@ impl Edge {
 
     pub fn attrs(&self) -> &HashSet<Attr> {
         &self.attrs
+    }
+
+    pub fn into_parts(self) -> (EdgeId, HashSet<Attr>) {
+        (self.id, self.attrs)
     }
 
     /// Write the edge to dot format

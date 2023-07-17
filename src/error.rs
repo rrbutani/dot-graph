@@ -26,7 +26,7 @@ pub enum DotGraphError {
     SubgraphAlreadyExists { subgraph_name: String, graph_name: String },
     #[error("cannot construct a subgraph out of zero nodes")]
     CannotConstructEmptySubgraph,
-    #[error("cannot remove node `{node}` of graph `{graph}`; it still has remaining edges including an edge {dir} `{other_node}`", dir = if *forward { "to" } else { "from" })]
+    #[error("cannot remove node `{node}` of graph `{graph}`; it still has remaining edge(s) including an edge {dir} `{other_node}`", dir = if *forward { "to" } else { "from" })]
     NodeStillHasEdges {
         node: String,
         graph: String,
@@ -36,7 +36,7 @@ pub enum DotGraphError {
     #[error("a node named `{node_name}` already exists in graph `{graph_name}`")]
     NodeAlreadyExists { node_name: String, graph_name: String },
     #[error("an edge with identity `{edge_id:?}` already exists in graph `{graph_name}`")]
-    EdgeAlreadyExists { edge_id: EdgeId, graph_name: String },
+    EdgeAlreadyExists { edge_id: Box<EdgeId>, graph_name: String },
     #[error(transparent)]
     IOError(#[from] std::io::Error),
 }

@@ -41,7 +41,8 @@ impl Borrow<str> for Node {
 }
 
 impl Node {
-    pub(crate) fn new(id: NodeId, attrs: HashSet<Attr>) -> Node {
+    // TODO: make safe?
+    pub fn new(id: NodeId, attrs: HashSet<Attr>) -> Node {
         Node { id, attrs }
     }
 

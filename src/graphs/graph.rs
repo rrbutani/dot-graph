@@ -90,15 +90,26 @@ impl Graph {
         &self.id
     }
 
-    pub fn subgraphs(&self) -> HashSet<&GraphId> {
+    pub fn subgraphs_len(&self) -> usize { self.subgraphs.len() }
+    pub fn nodes_len(&self) -> usize { self.nodes.len() }
+    pub fn edges_len(&self) -> usize { self.edges.len() }
+
+    pub fn subgraphs(&self) -> &HashSet<SubGraph> { &self.subgraphs }
+    pub fn edges(&self) -> &HashSet<Edge> { &self.edges }
+    pub fn nodes(&self) -> &HashSet<Node> { &self.nodes }
+
+    /// **Warning**: Expensive!
+    pub fn subgraphs_by_id(&self) -> HashSet<&GraphId> {
         self.subgraphs.par_iter().map(|subgraph| &subgraph.id).collect()
     }
 
-    pub fn nodes(&self) -> HashSet<&NodeId> {
+    /// **Warning**: Expensive!
+    pub fn nodes_by_id(&self) -> HashSet<&NodeId> {
         self.nodes.par_iter().map(|node| &node.id).collect()
     }
 
-    pub fn edges(&self) -> HashSet<&EdgeId> {
+    /// **Warning**: Expensive!
+    pub fn edges_by_id(&self) -> HashSet<&EdgeId> {
         self.edges.par_iter().map(|edge| &edge.id).collect()
     }
 
@@ -487,7 +498,9 @@ impl Graph {
         // With that out of the way we can begin removing nodes.
         let mut removed: HashMap<Node, MaybeUninit<GraphId>> = HashMap::with_capacity(count);
         for node_id in node_ids {
-            let node = self.nodes.take(node_id).unwrap();
+            let Some(node) = self.nodes.take(node_id) else {
+                continue; // assuming duplicate..
+            };
 
             self.fwdmap.remove(&node.id);
             self.bwdmap.remove(&node.id);
@@ -585,6 +598,9 @@ impl Graph {
             ));
         }
 
+        assert!(self.fwdmap.insert(node.id.clone(), HashSet::new()).is_none());
+        assert!(self.bwdmap.insert(node.id.clone(), HashSet::new()).is_none());
+
         assert!(self.nodes.insert(node));
         Ok(())
     }
@@ -593,7 +609,7 @@ impl Graph {
     /// removed from.
     pub fn remove_edges<'e, EdgeKey>(
         &mut self,
-        edge_ids: impl Clone + IntoIterator<Item = &'e EdgeKey>,
+        edge_ids: impl Clone + IntoIterator<Item = &'e EdgeKey>, // TODO: potential for shenanigans if this does not yield the same elements the second time around..
     ) -> Result<HashMap<Edge, GraphId>, DotGraphError>
     where
         Edge: Borrow<EdgeKey>,
@@ -614,7 +630,9 @@ impl Graph {
         // With that out of the way we can remove the edges.
         let mut removed: HashMap<Edge, GraphId> = HashMap::with_capacity(count);
         for edge_id in edge_ids {
-            let edge = self.edges.take(edge_id).unwrap();
+            let Some(edge) = self.edges.take(edge_id) else {
+                continue; // assuming duplicate in the list..
+            };
             let Edge { id: EdgeId { from, to, .. }, .. } = &edge;
 
             assert!(self.fwdmap.get_mut(from).unwrap().remove(to));
@@ -655,7 +673,7 @@ impl Graph {
     ) -> Result<(), DotGraphError> {
         if self.edges.contains(&edge) {
             return Err(DotGraphError::EdgeAlreadyExists {
-                edge_id: edge.id.clone(),
+                edge_id: Box::new(edge.id.clone()),
                 graph_name: self.id.clone(),
             });
         }
