@@ -95,8 +95,8 @@ impl Graph {
     pub fn edges_len(&self) -> usize { self.edges.len() }
 
     pub fn subgraphs(&self) -> &HashSet<SubGraph> { &self.subgraphs }
-    pub fn edges(&self) -> &HashSet<Edge> { &self.edges }
     pub fn nodes(&self) -> &HashSet<Node> { &self.nodes }
+    pub fn edges(&self) -> &HashSet<Edge> { &self.edges }
 
     /// **Warning**: Expensive!
     pub fn subgraphs_by_id(&self) -> HashSet<&GraphId> {
@@ -200,14 +200,14 @@ impl Graph {
 
     pub fn parents<NodeKey>(
         &self,
-        root: &NodeKey,
+        base: &NodeKey,
         depth: Option<usize>,
     ) -> Result<Graph, DotGraphError>
     where
         Node: Borrow<NodeKey>,
         NodeKey: Debug + Hash + Eq + ?Sized,
     {
-        self.select_subset(root, depth, WalkDirections::From)
+        self.select_subset(base, depth, WalkDirections::From)
     }
 
     /// Constructs a new `Graph`, given a center node and an (optional) depth
@@ -269,7 +269,7 @@ impl Graph {
         }
     }
 
-    /// Constructs a new `Graph`, with a new `root`.
+    /// Extracts a subgraph of the graph into a new `Graph`.
     ///
     /// # Arguments
     ///
@@ -300,6 +300,7 @@ impl Graph {
     ///
     /// * `node_ids` - List of nodes to move to the new subgraph
     ///    + all of these nodes must share the same graph/subgraph parent
+    ///      - TODO: can we relax this requirement?
     ///    + this list cannot be empty
     pub fn add_subgraph<'n, NodeKey>(
         &mut self,
