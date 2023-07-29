@@ -11,7 +11,7 @@ use std::{
     collections::{HashMap, HashSet, VecDeque},
     fmt::Debug,
     hash::Hash,
-    mem,
+    mem, sync::OnceLock,
 };
 use std::{io::Write, mem::MaybeUninit, sync::Mutex};
 
@@ -53,7 +53,9 @@ pub struct Graph {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum WalkDirections {
+    /// aka outgoing, children, nodes to which we can go
     To,
+    /// aka incoming, parents; nodes from which we can be reached
     From,
     Both,
 }
@@ -244,7 +246,24 @@ impl Graph {
         Node: Borrow<NodeKey>,
         NodeKey: Debug + Hash + Eq + ?Sized,
     {
-        let empty = HashSet::new();
+        let subset = self.find_subset(starting, depth, directions)?;
+        Ok(self.extract::<NodeId>(subset.into_iter()))
+    }
+
+    pub fn find_subset<NodeKey>(
+        &self,
+        starting: &NodeKey,
+        depth: Option<usize>,
+        directions: WalkDirections,
+    ) -> Result<HashSet<&String>, DotGraphError>
+        where
+        Node: Borrow<NodeKey>,
+        NodeKey: Debug + Hash + Eq + ?Sized,
+    {
+        let empty = || {
+            static EMPTY: OnceLock<HashSet<String>> = OnceLock::new();
+            EMPTY.get_or_init(HashSet::new)
+        };
 
         if let Some(starting) = self.nodes.get(starting) {
             let mut visited = HashSet::new();
@@ -256,14 +275,14 @@ impl Graph {
                     continue;
                 }
 
-                let tos = if directions.to() { self.fwdmap.get(id).unwrap() } else { &empty };
-                let froms = if directions.from() { self.bwdmap.get(id).unwrap() } else { &empty };
+                let tos = if directions.to() { self.fwdmap.get(id).unwrap() } else { empty() };
+                let froms = if directions.from() { self.bwdmap.get(id).unwrap() } else { empty() };
                 let nexts = tos.union(froms);
 
                 frontier.extend(nexts.map(|next| (next, vicinity + 1)));
             }
 
-            Ok(self.extract::<NodeId>(visited.into_iter()))
+            Ok(visited)
         } else {
             Err(DotGraphError::NoSuchNode(format!("{:?}", starting), self.id.clone()))
         }
