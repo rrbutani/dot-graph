@@ -14,9 +14,11 @@ edition = "2021"
 [dependencies]
 thiserror = "1.0.38"
 rayon = "1.6.1"
+
+[dev-dependencies]
 serial_test = "1.0.0"
 
 [build-dependencies]
-bindgen = "0.59.1"
+bindgen = "0.62" # want 0.62+ so we can use new (16+) clang: https://github.com/rust-lang/rust-bindgen/commit/80738016a36e803fe3bf8b8f6f388c6589d86a1c
 pkg-config = "0.3.27"
 # TODO: maybe don't run bindgen at build-time... (vendor the output!)

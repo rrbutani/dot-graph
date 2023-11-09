@@ -61,7 +61,26 @@ impl Attr {
         W: Write,
     {
         let key = &self.key;
-        let value = &self.value;
+        // let value = &self.value.escape_default().collect::<String>();
+        let value = &self.value
+            // .replace("\n", "\\n")
+            // .replace("\t", "\\t")
+            // .replace("\\\"", "\\\\\"")
+
+            // `\"` -> `\\\"`
+            //
+            // two step:
+            // `\"` -> `\\"` -> `\\\"`
+            //
+            // unfortunately xdot does not map `\\` to `\` so: we use the
+            // HTML escape instead:
+            .replace("\\\"", "&#92;\"")
+            // `"` -> `\"`
+            .replace('"', "\\\"")
+            // .replace("'", "\\\'")
+            .replace("&", "&amp;")
+        ; // TODO: fix up; issue with `escape_default` is it escapes unicode too
+        // TODO: just use the HTML escape crate (if not html already)
 
         (0..=indent).try_for_each(|_| write!(writer, "\t"))?;
         if self.is_html {
