@@ -924,13 +924,13 @@ impl Graph {
     }
 
     /// Write the graph to dot format.
-    pub fn to_dot<W: ?Sized>(&self, writer: &mut W) -> std::io::Result<()>
+    pub fn to_dot<W: ?Sized>(&self, sort_nodes: bool, writer: &mut W) -> std::io::Result<()>
     where
         W: Write,
     {
         let root = self.subgraphs.get(&self.id).unwrap();
 
-        root.to_dot(self, 0, writer)
+        root.to_dot(self, 0, sort_nodes, writer)
     }
 }
 

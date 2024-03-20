@@ -120,10 +120,16 @@ impl SubGraph {
     }
 
     /// Write the graph to dot format.
+    ///
+    /// If true, `sort_nodes` will use a deterministic ordering (sorted by node
+    /// name) for the nodes and subgraphs that are emitted. This can affect the
+    /// layout Graphviz uses (it appears to consider node ordering in the input
+    /// dot files for nodes within a rank when laying out nodes).
     pub(super) fn to_dot<W: ?Sized>(
         &self,
         graph: &Graph,
         indent: usize,
+        sort_nodes: bool,
         writer: &mut W,
     ) -> std::io::Result<()>
     where
@@ -149,12 +155,32 @@ impl SubGraph {
             writeln!(writer, "]")?;
         }
 
-        for id in &self.subgraph_ids {
+        let (mut sorted_subgraphs, mut unsorted_subgraphs);
+        let subgraphs = if sort_nodes {
+            let mut subgraphs = self.subgraph_ids.par_iter().collect::<Vec<_>>();
+            subgraphs.par_sort();
+            sorted_subgraphs = subgraphs.into_iter();
+            &mut sorted_subgraphs as &mut dyn Iterator<Item = &_>
+        } else {
+            unsorted_subgraphs = self.subgraph_ids.iter();
+            &mut unsorted_subgraphs as &mut dyn Iterator<Item = &_>
+        };
+        for id in subgraphs {
             let subgraph = graph.search_subgraph(id).unwrap();
-            subgraph.to_dot(graph, indent + 1, writer)?;
+            subgraph.to_dot(graph, indent + 1, sort_nodes, writer)?;
         }
 
-        for id in &self.node_ids {
+        let (mut sorted_nodes, mut unsorted_nodes);
+        let nodes = if sort_nodes {
+            let mut nodes = self.node_ids.par_iter().collect::<Vec<_>>();
+            nodes.par_sort();
+            sorted_nodes = nodes.into_iter();
+            &mut sorted_nodes
+        } else {
+            unsorted_nodes = self.node_ids.iter();
+            &mut unsorted_nodes as &mut dyn Iterator<Item = &_>
+        };
+        for id in nodes {
             let node = graph.search_node(id).unwrap();
             node.to_dot(indent + 1, writer)?;
         }
